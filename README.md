@@ -2,53 +2,74 @@
 
 A collaborative, real-time editable user journey map for the Qualitia team.
 
+## 🚀 Deploy (get a public link in ~3 min)
+
+### Option A — Render.com (recommended, free, persistent storage)
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/mkm-qual/qualitia-userjourney)
+
+1. Click the button above → Sign in / create a free Render account
+2. Click **Apply** — Render builds and deploys automatically
+3. Your public URL appears under **Dashboard → Service → Settings → URL** (looks like `https://qualitia-userjourney.onrender.com`)
+
+> Data persists via the Render Disk defined in `render.yaml`.
+
+### Option B — Railway (alternative)
+
+1. Go to [railway.app](https://railway.app) → **New Project** → **Deploy from GitHub repo**
+2. Select `mkm-qual/qualitia-userjourney`
+3. Add env var: `DB_DIR=/data` and attach a Volume at `/data`
+4. Click **Generate Domain** under Settings → Networking
+
+---
+
 ## Features
 
-- **Real-time collaboration** — changes sync every 4 seconds across all users
-- **Editable phases & cells** — click any cell to edit; phase names are also editable
+- **Real-time collaboration** — changes sync every 4 seconds across all logged-in users
+- **Editable phases & cells** — click any cell to edit inline; phase names are also editable
 - **Add / reorder / delete phases** — full phase management
-- **Undo / Redo** — up to 20 steps (`Ctrl+Z` / `Ctrl+Y`)
-- **Save button** — `Ctrl+S` or click Save; everyone sees the latest immediately
-- **Admin panel** — add users, reset passwords, manage roles
+- **Undo / Redo** — up to 20 steps (`Ctrl+Z` / `Ctrl+Y` / `Ctrl+Shift+Z`)
+- **Save button** — `Ctrl+S` or click Save; everyone sees the latest update immediately
+- **Admin panel** — add users, reset passwords, manage roles (admin / user)
 - **User authentication** — every stakeholder has their own login
 
 ## Default Login
 
-| Username | Password   | Role  |
-|----------|-----------|-------|
+| Username | Password    | Role  |
+|----------|------------|-------|
 | `admin`  | `Admin@123` | Admin |
 
-**Change the admin password after first login via Admin Panel → Reset PW.**
+> **First thing to do:** Log in as admin → click Users → Reset PW for the admin account.
 
 ## Local Development
 
 ```bash
 # Install all dependencies
-npm run install:all
+npm install
 
-# Start backend (port 3001)
-npm run dev:server
+# Build the React frontend
+npm run build
 
-# In another terminal, start frontend (port 5173)
-npm run dev:client
+# Start the server (serves both API and frontend)
+npm start
 ```
 
-Open http://localhost:5173
+Open http://localhost:3001
 
-## Deploy to Railway (free, ~1 min)
+For hot-reload development:
+```bash
+# Terminal 1 — backend
+npm run dev:server
 
-1. Push this repo to GitHub
-2. Go to [railway.app](https://railway.app) → New Project → Deploy from GitHub
-3. Select this repository
-4. Railway auto-detects `railway.toml` and builds + deploys
-5. Under **Settings → Networking** → Generate Domain for your public URL
-
-> **Data persistence**: Add a Railway Volume mounted at `/app` (`DB_DIR=/app`) so the SQLite database survives redeploys.
+# Terminal 2 — frontend (with HMR)
+npm run dev:client
+# Open http://localhost:5173
+```
 
 ## Environment Variables
 
-| Variable   | Default                          | Description              |
-|-----------|----------------------------------|--------------------------|
-| `PORT`    | `3001`                           | Server port              |
-| `JWT_SECRET` | `qualitia-journey-secret-2024` | Change this in production! |
-| `DB_DIR`  | app root                         | Directory for `qualitia.db` |
+| Variable     | Default                            | Description                         |
+|--------------|------------------------------------|-------------------------------------|
+| `PORT`       | `3001`                             | Server port                         |
+| `JWT_SECRET` | `qualitia-journey-secret-2024`     | **Change this in production!**      |
+| `DB_DIR`     | app root                           | Directory where `data/` is stored   |
