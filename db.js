@@ -71,7 +71,8 @@ const INITIAL_DATA = {
     { id: 'userActions', label: 'User Actions', color: '#8B5CF6', description: 'What action does the user take during each step?' },
     { id: 'feelingsThoughts', label: 'Feelings & Thoughts', color: '#EC4899', description: 'How is the user feeling during each step?' },
     { id: 'painPoints', label: 'Pain Points', color: '#EF4444', description: "What's not working well? What causes friction?" },
-    { id: 'aiOpportunities', label: 'AI Opportunities (BELLA)', color: '#10B981', description: 'How will we create opportunities for BELLA?' }
+    { id: 'aiOpportunities', label: 'AI Opportunities (BELLA)', color: '#10B981', description: 'How will we create opportunities for BELLA?' },
+    { id: 'kpi', label: 'KPI', color: '#F59E0B', description: 'Key Performance Indicators for this phase' }
   ],
   phases: [
     {
