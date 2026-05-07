@@ -324,7 +324,7 @@ export default function JourneyMap({ journeyData, onChange }) {
                 {isCollapsed && sortedPhases.map(phase => {
                   const cellText = (phase.cells?.[row.id] || '').split('\n')[0];
                   return (
-                    <div key={phase.id} className="flex-shrink-0 border-r border-gray-100 flex items-center px-3"
+                    <div key={phase.id} className="flex-shrink-0 border-r border-gray-100 flex items-start px-3 pt-2.5"
                       style={{ width: PHASE_WIDTH, minWidth: PHASE_WIDTH, height: 40 }}>
                       <span className="text-xs text-gray-400 truncate italic">{cellText || '—'}</span>
                     </div>
@@ -335,13 +335,13 @@ export default function JourneyMap({ journeyData, onChange }) {
 
               {/* ── Expanded content ── */}
               {!isCollapsed && (
-                <div className="flex" style={{ background: rowBg }}>
+                <div className="flex items-start" style={{ background: rowBg }}>
                   {/* empty sticky spacer to align cells under header */}
-                  <div className="flex-shrink-0 sticky left-0 z-10 border-r border-gray-200"
+                  <div className="flex-shrink-0 sticky left-0 z-10 border-r border-gray-200 self-stretch"
                     style={{ width: ROW_HEADER_WIDTH, minWidth: ROW_HEADER_WIDTH, background: rowBg, borderLeft: `4px solid ${row.color}` }} />
 
                   {sortedPhases.map(phase => (
-                    <div key={phase.id} className="flex-shrink-0 border-r border-gray-100 p-1"
+                    <div key={phase.id} className="flex-shrink-0 border-r border-gray-100 p-1 self-start"
                       style={{ width: PHASE_WIDTH, minWidth: PHASE_WIDTH }}>
                       <EditableCell
                         value={phase.cells?.[row.id] || ''}
