@@ -247,102 +247,95 @@ export default function JourneyMap({ journeyData, onChange }) {
           const rowBg = rowIdx % 2 === 0 ? '#ffffff' : '#f8fafc';
 
           return (
-            <div key={row.id} className="group/row border-b border-gray-200" style={{ background: rowBg }}>
-
-              {/* ── Accordion header (always visible) ── */}
-              <div className="flex" style={{ background: rowBg }}>
-                {/* Row header */}
+            /* Single flex row — label and cells share the same top edge */
+            <div key={row.id}
+              className="flex items-start group/row border-b border-gray-200"
+              style={{ background: rowBg }}
+            >
+              {/* ── Left: row header (sticky, always visible) ── */}
+              <div
+                className="flex-shrink-0 sticky left-0 z-10 border-r border-gray-200 self-stretch relative"
+                style={{
+                  width: ROW_HEADER_WIDTH, minWidth: ROW_HEADER_WIDTH,
+                  background: rowBg, borderLeft: `4px solid ${row.color}`,
+                }}
+              >
+                {/* Toggle + label */}
                 <div
-                  className="flex-shrink-0 sticky left-0 z-10 border-r border-gray-200 relative"
-                  style={{ width: ROW_HEADER_WIDTH, minWidth: ROW_HEADER_WIDTH, background: rowBg, borderLeft: `4px solid ${row.color}` }}
+                  className="flex items-start gap-2 px-2 pt-2.5 pb-2 cursor-pointer select-none"
+                  onClick={() => toggleRow(row.id)}
+                  title={isCollapsed ? 'Expand row' : 'Collapse row'}
                 >
-                  {/* Clickable toggle strip */}
-                  <div
-                    className="flex items-center gap-2 px-2 py-2.5 cursor-pointer select-none"
-                    onClick={() => toggleRow(row.id)}
-                    title={isCollapsed ? 'Expand row' : 'Collapse row'}
-                  >
-                    <span style={{ color: row.color }}>
-                      <Chevron open={!isCollapsed} />
-                    </span>
-
-                    <div className="flex-1 min-w-0">
-                      {/* Label — click-to-edit, stops propagation so it doesn't toggle */}
-                      <div className="text-sm font-bold leading-tight" style={{ color: row.color }}>
+                  <span className="mt-0.5 flex-shrink-0" style={{ color: row.color }}>
+                    <Chevron open={!isCollapsed} />
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-bold leading-tight" style={{ color: row.color }}>
+                      <InlineEdit
+                        value={row.label}
+                        onSave={v => updateRowField(row.id, 'label', v)}
+                        className="block w-full"
+                        placeholder="Row name"
+                      />
+                    </div>
+                    {!isCollapsed && (
+                      <div className="mt-0.5 text-xs text-gray-400 leading-tight">
                         <InlineEdit
-                          value={row.label}
-                          onSave={v => updateRowField(row.id, 'label', v)}
+                          value={row.description}
+                          onSave={v => updateRowField(row.id, 'description', v)}
                           className="block w-full"
-                          placeholder="Row name"
+                          placeholder="Add description…"
+                          multiline
                         />
                       </div>
-
-                      {/* Description — only shown when expanded */}
-                      {!isCollapsed && (
-                        <div className="mt-0.5 text-xs text-gray-400 leading-tight">
-                          <InlineEdit
-                            value={row.description}
-                            onSave={v => updateRowField(row.id, 'description', v)}
-                            className="block w-full"
-                            placeholder="Add description…"
-                            multiline
-                          />
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Row controls — on hover */}
-                  <div className="absolute top-1.5 right-1.5 flex items-center gap-0.5 opacity-0 group-hover/row:opacity-100 transition-opacity">
-                    <div className="relative">
-                      <button
-                        onClick={e => { e.stopPropagation(); setShowColorPicker(showColorPicker === row.id ? null : row.id); }}
-                        className="w-4 h-4 rounded-full border-2 border-white shadow-sm hover:scale-110 transition-transform"
-                        style={{ background: row.color }}
-                        title="Change colour"
-                      />
-                      {showColorPicker === row.id && (
-                        <ColorPicker current={row.color} onPick={c => updateRowColor(row.id, c)} onClose={() => setShowColorPicker(null)} />
-                      )}
-                    </div>
-                    <button onClick={e => { e.stopPropagation(); moveRow(row.id, -1); }} disabled={rowIdx === 0}
-                      className="p-0.5 text-gray-400 hover:text-gray-700 disabled:opacity-20 transition-colors" title="Move up">
-                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>
-                    </button>
-                    <button onClick={e => { e.stopPropagation(); moveRow(row.id, 1); }} disabled={rowIdx === rowHeaders.length - 1}
-                      className="p-0.5 text-gray-400 hover:text-gray-700 disabled:opacity-20 transition-colors" title="Move down">
-                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                    </button>
-                    <button onClick={e => { e.stopPropagation(); deleteRow(row.id); }}
-                      className="p-0.5 text-gray-400 hover:text-red-500 transition-colors" title="Delete row">
-                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                    </button>
+                    )}
                   </div>
                 </div>
 
-                {/* Collapsed preview cells — one line of text per phase */}
-                {isCollapsed && sortedPhases.map(phase => {
-                  const cellText = (phase.cells?.[row.id] || '').split('\n')[0];
-                  return (
-                    <div key={phase.id} className="flex-shrink-0 border-r border-gray-100 flex items-start px-3 pt-2.5"
-                      style={{ width: PHASE_WIDTH, minWidth: PHASE_WIDTH, height: 40 }}>
-                      <span className="text-xs text-gray-400 truncate italic">{cellText || '—'}</span>
-                    </div>
-                  );
-                })}
-                {isCollapsed && <div style={{ width: 80, minWidth: 80 }} />}
+                {/* Row controls — on hover */}
+                <div className="absolute top-1.5 right-1.5 flex items-center gap-0.5 opacity-0 group-hover/row:opacity-100 transition-opacity">
+                  <div className="relative">
+                    <button
+                      onClick={e => { e.stopPropagation(); setShowColorPicker(showColorPicker === row.id ? null : row.id); }}
+                      className="w-4 h-4 rounded-full border-2 border-white shadow-sm hover:scale-110 transition-transform"
+                      style={{ background: row.color }}
+                      title="Change colour"
+                    />
+                    {showColorPicker === row.id && (
+                      <ColorPicker current={row.color} onPick={c => updateRowColor(row.id, c)} onClose={() => setShowColorPicker(null)} />
+                    )}
+                  </div>
+                  <button onClick={e => { e.stopPropagation(); moveRow(row.id, -1); }} disabled={rowIdx === 0}
+                    className="p-0.5 text-gray-400 hover:text-gray-700 disabled:opacity-20 transition-colors" title="Move up">
+                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>
+                  </button>
+                  <button onClick={e => { e.stopPropagation(); moveRow(row.id, 1); }} disabled={rowIdx === rowHeaders.length - 1}
+                    className="p-0.5 text-gray-400 hover:text-gray-700 disabled:opacity-20 transition-colors" title="Move down">
+                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                  </button>
+                  <button onClick={e => { e.stopPropagation(); deleteRow(row.id); }}
+                    className="p-0.5 text-gray-400 hover:text-red-500 transition-colors" title="Delete row">
+                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                  </button>
+                </div>
               </div>
 
-              {/* ── Expanded content ── */}
-              {!isCollapsed && (
-                <div className="flex items-start" style={{ background: rowBg }}>
-                  {/* empty sticky spacer to align cells under header */}
-                  <div className="flex-shrink-0 sticky left-0 z-10 border-r border-gray-200 self-stretch"
-                    style={{ width: ROW_HEADER_WIDTH, minWidth: ROW_HEADER_WIDTH, background: rowBg, borderLeft: `4px solid ${row.color}` }} />
-
-                  {sortedPhases.map(phase => (
-                    <div key={phase.id} className="flex-shrink-0 border-r border-gray-100 p-1 self-start"
-                      style={{ width: PHASE_WIDTH, minWidth: PHASE_WIDTH }}>
+              {/* ── Right: phase cells (same row, start flush at top) ── */}
+              {sortedPhases.map(phase => (
+                <div key={phase.id}
+                  className="flex-shrink-0 border-r border-gray-100"
+                  style={{ width: PHASE_WIDTH, minWidth: PHASE_WIDTH }}
+                >
+                  {isCollapsed ? (
+                    /* Collapsed: single-line preview */
+                    <div className="px-3 py-2.5">
+                      <span className="text-xs text-gray-400 truncate italic block">
+                        {(phase.cells?.[row.id] || '').split('\n')[0] || '—'}
+                      </span>
+                    </div>
+                  ) : (
+                    /* Expanded: full editable cell */
+                    <div className="p-1">
                       <EditableCell
                         value={phase.cells?.[row.id] || ''}
                         onChange={val => updateCell(phase.id, row.id, val)}
@@ -350,10 +343,11 @@ export default function JourneyMap({ journeyData, onChange }) {
                         placeholder={`${row.label} for ${phase.name}…`}
                       />
                     </div>
-                  ))}
-                  <div style={{ width: 80, minWidth: 80 }} />
+                  )}
                 </div>
-              )}
+              ))}
+
+              <div style={{ width: 80, minWidth: 80 }} />
             </div>
           );
         })}
