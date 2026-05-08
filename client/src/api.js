@@ -84,6 +84,17 @@ export async function updateUserPassword(id, password) {
   return data;
 }
 
+export async function changePassword(currentPassword, newPassword) {
+  const res = await fetch(`${BASE}/auth/change-password`, {
+    method: 'PUT',
+    headers: authHeaders(),
+    body: JSON.stringify({ currentPassword, newPassword })
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error);
+  return data;
+}
+
 export async function deleteUser(id) {
   const res = await fetch(`${BASE}/users/${id}`, {
     method: 'DELETE',

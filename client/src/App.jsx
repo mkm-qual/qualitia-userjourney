@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import Login from './components/Login';
 import JourneyMap from './components/JourneyMap';
 import AdminPanel from './components/AdminPanel';
+import ChangePasswordModal from './components/ChangePasswordModal';
 import { getMe, getJourney, getJourneyVersion, saveJourney, logout } from './api';
 import { useUndoRedoFull } from './hooks/useUndoRedo';
 
@@ -12,6 +13,9 @@ export default function App() {
   const [authChecked, setAuthChecked] = useState(false);
   const [loadingData, setLoadingData] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
+  const [showChangePassword, setShowChangePassword] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const userMenuRef = useRef(null);
   const [saveStatus, setSaveStatus] = useState('idle'); // idle | saving | saved | error
   const [liveUpdateAvailable, setLiveUpdateAvailable] = useState(false);
   const [lastSyncedAt, setLastSyncedAt] = useState(null);
@@ -45,6 +49,17 @@ export default function App() {
     }
     return () => stopPolling();
   }, [user, !!journeyData]);
+
+  // Close user menu on outside click
+  useEffect(() => {
+    function handleClick(e) {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target)) {
+        setShowUserMenu(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -257,20 +272,55 @@ export default function App() {
               </button>
             )}
 
-            <div className="flex items-center gap-2 pl-2 border-l border-gray-200">
-              <div className="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold">
-                {user.username[0].toUpperCase()}
-              </div>
-              <span className="text-sm text-gray-700 hidden sm:block">{user.username}</span>
+            {/* User menu dropdown */}
+            <div className="relative pl-2 border-l border-gray-200" ref={userMenuRef}>
               <button
-                onClick={handleLogout}
-                className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition"
-                title="Sign out"
+                onClick={() => setShowUserMenu(v => !v)}
+                className="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-gray-100 transition"
               >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                <div className="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                  {user.username[0].toUpperCase()}
+                </div>
+                <span className="text-sm text-gray-700 hidden sm:block">{user.username}</span>
+                <svg className={`w-3.5 h-3.5 text-gray-400 transition-transform ${showUserMenu ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
+
+              {showUserMenu && (
+                <div className="absolute right-0 top-full mt-1.5 w-52 bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden">
+                  {/* User info */}
+                  <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
+                    <p className="text-xs text-gray-500">Signed in as</p>
+                    <p className="text-sm font-semibold text-gray-800 truncate">{user.username}</p>
+                    <span className={`inline-block mt-0.5 px-1.5 py-0.5 rounded text-xs font-medium ${user.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}`}>
+                      {user.role}
+                    </span>
+                  </div>
+
+                  {/* Change password */}
+                  <button
+                    onClick={() => { setShowChangePassword(true); setShowUserMenu(false); }}
+                    className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition"
+                  >
+                    <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                    </svg>
+                    Change Password
+                  </button>
+
+                  {/* Sign out */}
+                  <button
+                    onClick={() => { handleLogout(); setShowUserMenu(false); }}
+                    className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition border-t border-gray-100"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    Sign Out
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -290,6 +340,9 @@ export default function App() {
 
       {/* Admin Panel */}
       {showAdmin && <AdminPanel onClose={() => setShowAdmin(false)} />}
+
+      {/* Change Password */}
+      {showChangePassword && <ChangePasswordModal user={user} onClose={() => setShowChangePassword(false)} />}
     </div>
   );
 }

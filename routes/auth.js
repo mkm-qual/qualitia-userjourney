@@ -1,7 +1,7 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { findUser } = require('../db');
+const { findUser, findUserById, updateUserPassword } = require('../db');
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'qualitia-journey-secret-2024';
@@ -26,6 +26,24 @@ router.post('/login', (req, res) => {
 
 router.get('/me', requireAuth, (req, res) => {
   res.json({ user: req.user });
+});
+
+// Any logged-in user can change their own password
+router.put('/change-password', requireAuth, (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+  if (!currentPassword || !newPassword)
+    return res.status(400).json({ error: 'Current password and new password are required' });
+  if (newPassword.length < 6)
+    return res.status(400).json({ error: 'New password must be at least 6 characters' });
+
+  const user = findUserById(req.user.id);
+  if (!user) return res.status(404).json({ error: 'User not found' });
+
+  const valid = bcrypt.compareSync(currentPassword, user.password_hash);
+  if (!valid) return res.status(401).json({ error: 'Current password is incorrect' });
+
+  updateUserPassword(req.user.id, newPassword);
+  res.json({ success: true });
 });
 
 function requireAuth(req, res, next) {
